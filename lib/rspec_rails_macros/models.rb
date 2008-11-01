@@ -54,26 +54,29 @@ module Rspec::Rails::Macros::Models
       message ||= DEFAULT_ERROR_MESSAGES[:taken]
 
       klass = self.described_type
+
       attributes.each do |attribute|
         attribute = attribute.to_sym
         describe "requires unique value for #{attribute}#{" scoped to #{scope.join(', ')}" unless scope.blank?}" do
-          existing = klass.find(:first)
-
+          before do
+            @existing = klass.find(:first)
+          end
+          
           it "should have one #{klass} record in the database in order to test" do
-            existing.should_not be_nil
+            @existing.should_not be_nil
           end
 
-          return if !existing
+          return if !@existing
 
           object = klass.new
-          existing_value = existing.send(attribute)
+          existing_value = @existing.send(attribute)
 
           if !scope.blank?
             scope.each do |s|
               it "should have a #{s} attribute" do
                 object.should respond_to(:"#{s}=")
               end
-              object.send("#{s}=", existing.send(s))
+              object.send("#{s}=", @existing.send(s))
             end
           end
           assert_bad_value(object, attribute, existing_value, message)
@@ -86,7 +89,7 @@ module Rspec::Rails::Macros::Models
           if !scope.blank?
             scope.each do |s|
               # Assume the scope is a foreign key if the field is nil
-              object.send("#{s}=", existing.send(s).nil? ? 1 : existing.send(s).next)
+              object.send("#{s}=", @existing.send(s).nil? ? 1 : @existing.send(s).next)
               assert_good_value(object, attribute, existing_value, message)
             end
           end
@@ -383,9 +386,9 @@ module Rspec::Rails::Macros::Models
       through, dependent = get_options!(associations, :through, :dependent)
       klass = self.described_type
       associations.each do |association|
-        name = "have many #{association}"
-        name += " through #{through}" if through
-        name += " dependent => #{dependent}" if dependent
+        name = "has_many :#{association}"
+        name += " :through => #{through}" if through
+        name += " :dependent => #{dependent}" if dependent
         describe name do
           reflection = klass.reflect_on_association(association)
           it "should have a relationship" do
