@@ -1,1 +1,1 @@
-require 'rspec_rails_macros' if Rails.env.test?
+# require 'rspec_rails_macros' if Rails.env.test?
