@@ -1,1 +1,1 @@
-# Include hook code here
+require 'rspec_rails_macros' if Rails.env.test?
