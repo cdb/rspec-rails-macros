@@ -15,11 +15,13 @@ module Rspec::Rails::Macros::Controller
       @acting_block
     end
     
-    def it_should_assign(variable_name, value=nil)
+    def it_should_assign(variable_name, value = nil, &block)
       it "should assign #{variable_name}" do
         do_act!
         if value
           assigns[variable_name].should == value
+        elsif block
+          assigns[variable_name].should == instance_eval(&block)
         else
           assigns[variable_name].should_not be_nil
         end
@@ -72,6 +74,14 @@ module Rspec::Rails::Macros::Controller
         end
       end
     end
+    
+    def it_should_expect(message, &block)
+      it "should #{message}" do
+        instance_eval(&block)
+        do_act!
+      end
+    end
+    alias_method :it_should_expect_to, :it_should_expect
   end
 
   def self.included(receiver)

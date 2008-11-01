@@ -20,9 +20,9 @@ module Rspec::Rails::Macros::Models
     #   Regexp or string.  Default = <tt>I18n.translate('activerecord.errors.messages')[:blank]</tt>
     #
     # Example:
-    #   should_require_attributes :name, :phone_number
+    #   it_should_validate_presence_of :name, :phone_number
     #
-    def it_should_require_attributes(*attributes)
+    def it_should_validate_presence_of(*attributes)
       message = get_options!(attributes, :message)
       message ||= DEFAULT_ERROR_MESSAGES[:blank]
       klass = self.described_type
@@ -43,12 +43,12 @@ module Rspec::Rails::Macros::Models
     # * <tt>:scoped_to</tt> - field(s) to scope the uniqueness to.
     #
     # Examples:
-    #   it_should_require_unique_attributes :keyword, :username
-    #   it_should_require_unique_attributes :name, :message => "O NOES! SOMEONE STOELED YER NAME!"
-    #   it_should_require_unique_attributes :email, :scoped_to => :name
-    #   it_should_require_unique_attributes :address, :scoped_to => [:first_name, :last_name]
+    #   it_should_validate_uniqueness_of :keyword, :username
+    #   it_should_validate_uniqueness_of :name, :message => "O NOES! SOMEONE STOELED YER NAME!"
+    #   it_should_validate_uniqueness_of :email, :scoped_to => :name
+    #   it_should_validate_uniqueness_of :address, :scoped_to => [:first_name, :last_name]
     #
-    def it_should_require_unique_attributes(*attributes)
+    def it_should_validate_uniqueness_of(*attributes)
       message, scope = get_options!(attributes, :message, :scoped_to)
       scope = [*scope].compact
       message ||= DEFAULT_ERROR_MESSAGES[:taken]
@@ -391,6 +391,7 @@ module Rspec::Rails::Macros::Models
         name += " :dependent => #{dependent}" if dependent
         describe name do
           reflection = klass.reflect_on_association(association)
+
           it "should have a relationship" do
             reflection.should_not be_nil
             reflection.macro.should == :has_many
