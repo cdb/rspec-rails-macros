@@ -34,6 +34,20 @@ module Rspec::Rails::Macros::Controller
         response.should be_success
       end
     end
+    
+    def it_should_be_missing
+      it 'should be a 404' do
+        do_act!
+        response.should be_missing
+      end
+    end
+    
+    def it_should_be_redirect
+      it 'should be a redirect' do
+        do_act!
+        response.should be_redirect
+      end
+    end
 
     def it_should_be_forbidden
       it 'should be forbidden' do
