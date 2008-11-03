@@ -1,5 +1,12 @@
 module Rspec::Rails::Macros::Models
   module ExampleGroupMethods
+
+    DEFAULT_ERROR_MESSAGES =
+      if Object.const_defined?(:I18n)
+      I18n.translate('activerecord.errors.messages')
+    else
+      ::ActiveRecord::Errors.default_error_messages
+    end
     
     def it_should_have_association(assoc_name, assoc_type)
       klass = self.described_type
@@ -891,17 +898,5 @@ end
 # http://github.com/thoughtbot/shoulda/tree/master/lib/shoulda/active_record/macros.rb 
 # and related files
 
-def define_macros
-  Spec::Example::ExampleGroupMethods.extend Module.new { yield }
-end
 
-DEFAULT_ERROR_MESSAGES =
-  if Object.const_defined?(:I18n)
-  I18n.translate('activerecord.errors.messages')
-else
-  ::ActiveRecord::Errors.default_error_messages
-end
 
-define_macros do
-
-end
