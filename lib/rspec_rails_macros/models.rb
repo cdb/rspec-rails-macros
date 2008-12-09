@@ -1,13 +1,6 @@
 module Rspec::Rails::Macros::Models
   module ExampleGroupMethods
 
-    DEFAULT_ERROR_MESSAGES =
-      if Object.const_defined?(:I18n)
-      I18n.translate('activerecord.errors.messages')
-    else
-      ::ActiveRecord::Errors.default_error_messages
-    end
-    
     def it_should_have_association(assoc_name, assoc_type)
       klass = self.described_type
       it "should have a #{assoc_type} association #{assoc_name}" do
@@ -31,7 +24,7 @@ module Rspec::Rails::Macros::Models
     #
     def it_should_validate_presence_of(*attributes)
       message = get_options!(attributes, :message)
-      message ||= DEFAULT_ERROR_MESSAGES[:blank]
+      message ||= default_error_message(:blank)
       klass = self.described_type
 
       attributes.each do |attribute|
@@ -58,7 +51,7 @@ module Rspec::Rails::Macros::Models
     def it_should_validate_uniqueness_of(*attributes)
       message, scope = get_options!(attributes, :message, :scoped_to)
       scope = [*scope].compact
-      message ||= DEFAULT_ERROR_MESSAGES[:taken]
+      message ||= default_error_message(:taken)
 
       klass = self.described_type
 
@@ -161,7 +154,7 @@ module Rspec::Rails::Macros::Models
     #
     def it_should_not_allow_values_for(attribute, *bad_values)
       message = get_options!(bad_values, :message)
-      message ||= DEFAULT_ERROR_MESSAGES[:invalid]
+      message ||= default_error_message(:invalid)
       klass = self.described_type
       bad_values.each do |v|
         describe "doesn't allow #{attribute} to be set to #{v.inspect}" do
@@ -206,8 +199,8 @@ module Rspec::Rails::Macros::Models
     #
     def it_should_ensure_length_in_range(attribute, range, opts = {})
       short_message, long_message = get_options!([opts], :short_message, :long_message)
-      short_message ||= DEFAULT_ERROR_MESSAGES[:too_short] % range.first
-      long_message  ||= DEFAULT_ERROR_MESSAGES[:too_long] % range.last
+      short_message ||= default_error_message(:too_short, :count => range.first)
+      long_message  ||= default_error_message(:too_long, :count => range.last)
 
       klass = self.described_type
       min_length = range.first
@@ -256,7 +249,7 @@ module Rspec::Rails::Macros::Models
     #
     def it_should_ensure_length_at_least(attribute, min_length, opts = {})
       short_message = get_options!([opts], :short_message)
-      short_message ||= DEFAULT_ERROR_MESSAGES[:too_short] % min_length
+      short_message ||= default_error_message(:too_short, :count => min_length)
 
       klass = self.described_type
 
@@ -287,7 +280,7 @@ module Rspec::Rails::Macros::Models
     #
     def it_should_ensure_length_is(attribute, length, opts = {})
       message = get_options!([opts], :message)
-      message ||= DEFAULT_ERROR_MESSAGES[:wrong_length] % length
+      message ||= default_error_message(:wrong_length, :count => length)
       klass = self.described_type
 
       describe "does not allow #{attribute} to be less than #{length} chars long" do
@@ -323,8 +316,8 @@ module Rspec::Rails::Macros::Models
     #
     def it_should_ensure_value_in_range(attribute, range, opts = {})
       low_message, high_message = get_options!([opts], :low_message, :high_message)
-      low_message  ||= DEFAULT_ERROR_MESSAGES[:inclusion]
-      high_message ||= DEFAULT_ERROR_MESSAGES[:inclusion]
+      low_message  ||= default_error_message(:inclusion)
+      high_message ||= default_error_message(:inclusion)
 
       klass = self.described_type
       min   = range.first
@@ -366,7 +359,7 @@ module Rspec::Rails::Macros::Models
     #
     def it_should_only_allow_numeric_values_for(*attributes)
       message = get_options!(attributes, :message)
-      message ||= DEFAULT_ERROR_MESSAGES[:not_a_number]
+      message ||= default_error_message(:not_a_number)
       klass = self.described_type
       attributes.each do |attribute|
         attribute = attribute.to_sym
@@ -658,7 +651,7 @@ module Rspec::Rails::Macros::Models
     #
     def it_should_require_acceptance_of(*attributes)
       message = get_options!(attributes, :message)
-      message ||= DEFAULT_ERROR_MESSAGES[:accepted]
+      message ||= default_error_message(:accepted)
       klass = self.described_type
 
       attributes.each do |attribute|
@@ -814,7 +807,7 @@ module Rspec::Rails::Macros::Models
     #   @product = Product.new(:tangible => true)
     #   assert_bad_value(Product, :price, "0")
     def assert_bad_value(object_or_klass, attribute, value,
-        error_message_to_expect = DEFAULT_ERROR_MESSAGES[:invalid])
+        error_message_to_expect = default_error_message(:invalid))
       object = get_instance_of(object_or_klass)
       object.send("#{attribute}=", value)
       object.valid?
@@ -884,6 +877,13 @@ module Rspec::Rails::Macros::Models
       end
     end
     
+    def default_error_message(key, values = {})
+      if Object.const_defined?(:I18n) # Rails >= 2.2
+        I18n.translate("activerecord.errors.messages.#{key}", values)
+      else # Rails <= 2.1.x
+        ::ActiveRecord::Errors.default_error_messages[key] % values[:count]
+      end
+    end
     
   end
 

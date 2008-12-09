@@ -81,10 +81,19 @@ module Rspec::Rails::Macros::Controller
     end
     
     def it_should_require_facebook_installation(&act)
-      describe 'not logged into facebook, or the app not installed' do
+      describe 'if the the app is not installed' do
         it 'should require facebook app installation' do
           instance_eval(&act)
           assert_facebook_redirect_to Facebooker::Session.create.install_url 
+        end
+      end
+    end
+    
+    def it_should_require_facebook_authentication(&act)
+      describe 'not logged into facebook' do
+        it 'should require facebook authentication' do
+          instance_eval(&act)
+          assert_facebook_redirect_to Facebooker::Session.create.login_url 
         end
       end
     end
