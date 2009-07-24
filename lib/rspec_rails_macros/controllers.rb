@@ -12,7 +12,7 @@ module Rspec::Rails::Macros::Controller
     end
     
     def acting_block
-      @acting_block
+      @acting_block || parent.acting_block
     end
     
     def it_should_assign(variable_name, value = nil, &block)
